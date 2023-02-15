@@ -6,6 +6,7 @@ from modules.utils import readEventCollection, formatDateTime
 load_dotenv()
 
 def fillEventsOnIntranet(eventfile = "events.csv") :
+    cohortPosition = [-1, 9, 8, 7, 6, 5, 4, 3, 2, 14, 13, 12, 11 , 1 , 10, 0]
     # initialize browser driver
     DRIVER_PATH = os.getenv('DRIVER_PATH')
     driver = webdriver.Chrome(executable_path=DRIVER_PATH)
@@ -24,7 +25,6 @@ def fillEventsOnIntranet(eventfile = "events.csv") :
 
     # read csv content to fill out forms
     csvcontents = readEventCollection(eventfile)
-    print(csvcontents)
     for row in csvcontents:
         # Find events
         driver.find_element('xpath', '/html/body/div[1]/ul/li[6]/a').click()
@@ -34,31 +34,32 @@ def fillEventsOnIntranet(eventfile = "events.csv") :
         driver.find_element('xpath', '//*[@id="event_event_type"]').send_keys("default")
         title = driver.find_element('xpath', '//*[@id="event_title"]')
         title.send_keys(row['Title'])
-        time.sleep(2)
+        time.sleep(1)
         # Event starts at
         startDate, startTime = formatDateTime(row['startAt'])
 
         driver.find_element('xpath', '//*[@id="new_event"]/div[4]/div/div/div[1]/div/div[1]/input').send_keys(startDate)
         driver.find_element('xpath', '//*[@id="new_event"]/div[4]/div/div/div[1]/div/div[2]/div/div/input').send_keys(startTime)
-        time.sleep(2)
+        time.sleep(1)
 
         # Event ends at
         endDate, endTime = formatDateTime(row['endAt'])
         driver.find_element('xpath', '//*[@id="new_event"]/div[4]/div/div/div[2]/div/div[1]/input').send_keys(endDate)
         driver.find_element('xpath', '//*[@id="new_event"]/div[4]/div/div/div[2]/div/div[2]/div/div/input').send_keys(endTime)
-        time.sleep(2)
+        time.sleep(1)
 
         driver.find_element('xpath', '//*[@id="event_location"]').send_keys(row['location'])
 
-        driver.find_element('xpath', '//*[@id="new_event"]/div[7]/div/div/div[2]/div/span[16]').click()
+        position = cohortPosition.index(int(row['cohortNumber'])) + 1
+        driver.find_element('xpath', '//*[@id="new_event"]/div[7]/div/div/div[2]/div/span['+ str(position) +']').click()
 
         # Show textarea for accessibility 
         js = "document.getElementById('event_description').style.display = 'block'"
         driver.execute_script(js)
 
         driver.find_element('xpath', '//*[@id="event_description"]').send_keys(row['description'])
-        time.sleep(2)
+        # time.sleep(2)
         # Next  button 
         driver.find_element('xpath', '//*[@id="new_event"]/div[11]/input').click()
-        time.sleep(5)
+        time.sleep(2)
 
